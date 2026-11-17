@@ -7,9 +7,11 @@ export interface Credentials {
 
 export class LoginPage {
   readonly error: Locator;
+  readonly loginButton: Locator;
 
   constructor(private readonly page: Page) {
     this.error = page.getByTestId('error');
+    this.loginButton = page.getByRole('button', { name: 'Login' });
   }
 
   async goto(): Promise<void> {
@@ -19,6 +21,6 @@ export class LoginPage {
   async login({ username, password }: Credentials): Promise<void> {
     await this.page.getByTestId('username').fill(username);
     await this.page.getByTestId('password').fill(password);
-    await this.page.getByRole('button', { name: 'Login' }).click();
+    await this.loginButton.click();
   }
 }
