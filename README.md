@@ -37,7 +37,11 @@ Configuration is read from the environment (see `.env.example`): `BASE_URL`, `ST
 
 ## Test approach
 
-Cases are prioritized by business risk. The critical path is the customer journey login, catalog, cart, checkout, confirmation, so TC-05 covers it end to end and is P1. Next come the cases that can block that journey: the locked-out account (TC-02) and checkout validation (TC-06), together with the basic login, cart badge and cart contents checks (TC-01, TC-03, TC-04). The navigation drawer follows (TC-07, TC-08), since it is an explicit requirement but does not gate a purchase. The remaining cases are documented and not automated. Price, tax and total arithmetic (TC-11) belongs at the API or unit level, where it is cheaper and more precise than a UI check. Empty-credential login, removal from the cart page, logout and cart persistence (TC-09, TC-10, TC-12, TC-13) are lower risk or partly covered by the automated cases.
+I prioritized by business risk. For a store the path that matters most is the purchase itself: login, catalog, cart, checkout, confirmation. TC-05 runs that whole path, so it's P1.
+
+After that come the things that can stop a customer from buying: a locked account (TC-02), checkout validation (TC-06), and the basic login and cart checks (TC-01, TC-03, TC-04). The drawer (TC-07, TC-08) is an explicit requirement, but it doesn't block a purchase, so it comes next.
+
+The rest is documented but not automated. Price and tax math (TC-11) is easier and more precise to check at the API or unit level than through the UI. TC-09, TC-10, TC-12 and TC-13 are lower risk or already partly covered by the automated tests.
 
 ## Test cases
 
@@ -59,7 +63,7 @@ The full plan (requirement, goal, steps, expected result, priority, rationale) i
 | TC-12 | Logout from the drawer returns to login and protects the catalog | No |
 | TC-13 | Cart contents persist across navigation and reload | No |
 
-The cases were derived from the five product requirements, not from browsing the site. The site was inspected afterwards to choose locators.
+I wrote the cases from the five product requirements first and opened the site only afterwards, to pick locators.
 
 ## Layout
 
@@ -74,26 +78,26 @@ scripts/     test-cases.xlsx generator
 ## Assumptions
 
 - saucedemo.com is available and its demo accounts and data are unchanged.
-- The cart badge, the drawer and checkout behave as of the inspection date. The drawer currently also lists a "Dynamic Catalog" item; the test does not assert on it because it is not part of the stated requirements.
-- For a staging environment, set `BASE_URL` and the credential variables; no code change is needed if the markup and `data-test` attributes match.
+- The cart badge, the drawer and checkout behave the way they did when I inspected the site. The drawer currently also has a "Dynamic Catalog" item. The test ignores it because it isn't in the requirements.
+- To run against staging, set `BASE_URL` and the credential variables. As long as the markup and `data-test` attributes are the same, the code doesn't change.
 
 ## Design decisions
 
 - Locators: `getByRole` where an accessible name exists, otherwise `data-test` through `getByTestId` (`testIdAttribute` is set to `data-test`).
-- One non-semantic selector: the drawer wrapper (`.bm-menu-wrap`) has no role or test id. It is used only to assert `aria-hidden`, with a comment in `pages/inventory.page.ts`.
-- Login goes through the `inventoryPage` fixture, so each test starts from a fresh context already on the catalog. Login tests use `loginPage` directly.
-- Page objects exist where several specs drive the same page. There is no base page and no component layer.
-- Assertions target outcomes: badge count, item names and quantities, the completion message, error text.
+- There is one CSS selector, `.bm-menu-wrap`. The drawer wrapper has no role or test id, and I need it only to check `aria-hidden`. The reason is in a comment in `pages/inventory.page.ts`.
+- Login happens in the `inventoryPage` fixture, so each test gets a fresh context and starts on the catalog. The login tests use `loginPage` directly.
+- Page objects exist only where several specs drive the same page. No base page, no component layer.
+- Assertions check outcomes the user sees: badge count, item names and quantities, the completion message, error text.
 
 Trade-offs:
 
-- UI login in the fixture adds a page load and a form submit to every test and couples every test to the login page. `storageState` would be faster but shares one login path and hides login regressions from most tests.
-- Page objects add indirection for a suite this small. They are kept because cart, checkout and drawer steps repeat across specs.
-- Chromium only. Cross-browser issues will not be caught.
+- UI login in the fixture costs a page load and a form submit per test, and every test depends on the login page. `storageState` would be faster. I didn't use it here because with 8 tests the time doesn't matter, and I'd rather see a broken login fail loudly.
+- For a suite this small, page objects are arguably extra indirection. I kept them because the cart, checkout and drawer steps repeat across specs.
+- Chromium only, so cross-browser issues won't show up.
 
 ## Known limitations
 
-- The target is an external demo service: it can be slow, change markup, or be unavailable, which fails tests regardless of the code.
+- The target is a public demo site. If it's slow, down, or changes its markup, tests fail no matter what the code does.
 - Eight of thirteen planned cases are automated. TC-09 to TC-13 are documented only.
 - Product prices and tax are not asserted (see TC-11).
 - Only the standard and locked-out users are used; the site's other demo users (for example `problem_user`, `performance_glitch_user`) are not covered.
