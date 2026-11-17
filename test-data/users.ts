@@ -1,3 +1,5 @@
+import type { Credentials } from '../pages/login.page';
+
 const password = process.env.USER_PASSWORD ?? 'secret_sauce';
 
 export const users = {
@@ -9,4 +11,4 @@ export const users = {
     username: process.env.LOCKED_OUT_USER ?? 'locked_out_user',
     password,
   },
-};
+} satisfies Record<string, Credentials>;
