@@ -10,7 +10,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL ?? 'https://www.saucedemo.com',
     testIdAttribute: 'data-test',
-    trace: 'retain-on-failure',
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
