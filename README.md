@@ -35,6 +35,10 @@ npx playwright show-trace test-results/<test>/trace.zip
 
 Configuration is read from the environment (see `.env.example`): `BASE_URL`, `STANDARD_USER`, `LOCKED_OUT_USER`, `USER_PASSWORD`. Each has a default for the public demo site.
 
+## Test approach
+
+Cases are prioritized by business risk. The critical path is the customer journey login, catalog, cart, checkout, confirmation, so TC-05 covers it end to end and is P1. Next come the cases that can block that journey: the locked-out account (TC-02) and checkout validation (TC-06), together with the basic login, cart badge and cart contents checks (TC-01, TC-03, TC-04). The navigation drawer follows (TC-07, TC-08), since it is an explicit requirement but does not gate a purchase. The remaining cases are documented and not automated. Price, tax and total arithmetic (TC-11) belongs at the API or unit level, where it is cheaper and more precise than a UI check. Empty-credential login, removal from the cart page, logout and cart persistence (TC-09, TC-10, TC-12, TC-13) are lower risk or partly covered by the automated cases.
+
 ## Test cases
 
 The full plan (requirement, goal, steps, expected result, priority, rationale) is in [test-cases.xlsx](test-cases.xlsx). The workbook is generated from `scripts/generate-test-cases.ts`.
